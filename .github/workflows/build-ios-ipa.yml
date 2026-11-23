@@ -1,0 +1,58 @@
+name: Build iOS IPA (MuGE)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main, master ]
+
+jobs:
+  build-ipa:
+    runs-on: macos-14
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Add iOS platform & sync web assets
+        run: |
+          npx cap add ios
+          npx cap sync ios
+
+      - name: Apply App Icon & Display Name
+        run: |
+          mkdir -p resources
+          cp www/icons/icon-1024.png resources/icon-only.png
+          npx @capacitor/assets generate --ios --iconBackgroundColor '#FCFBF8' || true
+          cp www/icons/icon-1024.png ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png
+          /usr/libexec/PlistBuddy -c "Set :CFBundleDisplayName 沐GE" ios/App/App/Info.plist || \
+            /usr/libexec/PlistBuddy -c "Add :CFBundleDisplayName string 沐GE" ios/App/App/Info.plist
+
+      - name: Build unsigned iOS app with Xcode
+        working-directory: ios/App
+        run: |
+          if [ -d "App.xcworkspace" ]; then
+            xcodebuild -workspace App.xcworkspace -scheme App -configuration Release -sdk iphoneos -derivedDataPath build CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" clean build
+          else
+            xcodebuild -project App.xcodeproj -scheme App -configuration Release -sdk iphoneos -derivedDataPath build CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" clean build
+          fi
+
+      - name: Package MuGE.ipa
+        run: |
+          mkdir -p dist/Payload
+          cp -R ios/App/build/Build/Products/Release-iphoneos/App.app dist/Payload/
+          cd dist
+          zip -r -y MuGE-unsigned.ipa Payload
+
+      - name: Upload MuGE IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: MuGE-iOS-IPA
+          path: dist/MuGE-unsigned.ipa
+          retention-days: 30
