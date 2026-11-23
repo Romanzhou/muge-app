@@ -1,0 +1,13 @@
+{
+  "appId": "com.muge.recipe",
+  "appName": "沐GE",
+  "webDir": "www",
+  "ios": {
+    "contentInset": "never",
+    "backgroundColor": "#FCFBF8",
+    "preferredContentMode": "mobile"
+  },
+  "android": {
+    "backgroundColor": "#FCFBF8"
+  }
+}

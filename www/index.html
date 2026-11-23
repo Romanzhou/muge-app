@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>沐GE</title>
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="沐GE" />
+  <meta name="theme-color" content="#FCFBF8" />
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+  <link rel="icon" type="image/png" href="icons/icon-192.png" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app-root">
+    <main id="main-scroll" class="scroll-body">
+
+      <!-- ==================== TAB 1: 分类 ==================== -->
+      <section id="view-home" class="view stack-20">
+        <div class="row-between">
+          <div>
+            <h1 class="headline">吃啥吃啥随机一下！</h1>
+            <div class="sub-caption" style="margin-top:4px;">个人食谱库 · 100 道</div>
+          </div>
+          <button class="btn-accent-pill" onclick="switchTab('random')">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/><line x1="4" y1="4" x2="9" y2="9"/></svg>
+            <span>随机配餐</span>
+          </button>
+        </div>
+
+        <div class="search-wrap">
+          <svg class="search-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input id="search-input" class="search-input" type="text" placeholder="搜索菜名、食材（如 鱼籽、牛肉、紫苏）…" oninput="handleSearch(this.value)" />
+          <button id="clear-search" class="search-clear hidden" onclick="clearSearch()" aria-label="清除搜索">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+
+        <div>
+          <div class="row-between">
+            <span class="section-title">菜品分类</span>
+            <button id="btn-show-all" class="xs muted" onclick="selectCategory('全部')">查看全部</button>
+          </div>
+          <div id="category-grid" class="cat-grid"></div>
+        </div>
+
+        <div class="tint-card row-between" style="cursor:pointer;" onclick="switchTab('random')">
+          <div>
+            <div class="section-title">按人数与口味，智能搭配一餐</div>
+            <div class="xs muted" style="margin-top:3px;">自动汇总备菜清单，按火候逻辑排好做菜顺序</div>
+          </div>
+          <div class="arrow-circle">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="9 18 15 12 9 6"/></svg>
+          </div>
+        </div>
+
+        <div>
+          <div class="row-between" style="margin-bottom:10px;">
+            <div class="row-center">
+              <span id="home-list-title" class="section-title">全部菜品</span>
+              <span id="home-list-count" class="xs subtle">100 道</span>
+            </div>
+            <span class="xs subtle">点 + 加入清单</span>
+          </div>
+          <div id="home-recipe-list" class="stack-10"></div>
+          <div id="home-empty" class="empty-box hidden">
+            <div class="xs muted">没有找到匹配的菜品</div>
+            <button class="pill-btn" style="margin-top:12px;" onclick="resetHomeFilters()">返回全部</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== TAB 2: 随机 ==================== -->
+      <section id="view-random" class="view hidden stack-20">
+        <div>
+          <div class="sub-caption">人数 × 口味智能搭配</div>
+          <h2 class="headline" style="margin-top:2px;">随机选菜</h2>
+        </div>
+
+        <div class="surface-card stack-16">
+          <div class="stack-10">
+            <div class="row-between">
+              <span class="section-title">1. 吃饭人数</span>
+              <span id="diner-hint" class="xs muted">2 炒菜 · 1 汤</span>
+            </div>
+            <div id="diner-pills" class="diner-grid"></div>
+            <div class="stepper-grid">
+              <div class="stepper-box">
+                <span class="xxs muted">火锅</span>
+                <div class="row-center" style="gap:4px;">
+                  <button class="stepper-btn" onclick="adjustCount('hotpot', -1)">−</button>
+                  <span id="hotpot-count-val" class="stepper-val">0</span>
+                  <button class="stepper-btn" onclick="adjustCount('hotpot', 1)">+</button>
+                </div>
+              </div>
+              <div class="stepper-box">
+                <span class="xxs muted">炒菜</span>
+                <div class="row-center" style="gap:4px;">
+                  <button class="stepper-btn" onclick="adjustCount('stirfry', -1)">−</button>
+                  <span id="stirfry-count-val" class="stepper-val">2</span>
+                  <button class="stepper-btn" onclick="adjustCount('stirfry', 1)">+</button>
+                </div>
+              </div>
+              <div class="stepper-box">
+                <span class="xxs muted">煲汤</span>
+                <div class="row-center" style="gap:4px;">
+                  <button class="stepper-btn" onclick="adjustCount('soup', -1)">−</button>
+                  <span id="soup-count-val" class="stepper-val">1</span>
+                  <button class="stepper-btn" onclick="adjustCount('soup', 1)">+</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="divider-top stack-10">
+            <div class="row-between">
+              <span class="section-title">2. 口味倾向</span>
+              <span id="taste-desc" class="xs subtle">均衡搭配</span>
+            </div>
+            <div id="taste-pills" class="pill-wrap"></div>
+          </div>
+
+          <button class="btn-primary-full" onclick="generateRandomMenu()">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/><line x1="4" y1="4" x2="9" y2="9"/></svg>
+            <span id="random-btn-label">开始随机配菜</span>
+          </button>
+        </div>
+
+        <div id="random-idle" class="dashed-box">
+          <div class="xs" style="font-weight:500;">选好人数与口味，点击开始随机</div>
+          <div class="xs subtle" style="margin-top:6px; line-height:1.6;">随机完成后自动合并全部食材，并一键生成科学排序的做菜步骤</div>
+        </div>
+
+        <div id="random-result" class="hidden stack-20">
+          <div class="stack-10">
+            <div class="row-between">
+              <span class="section-title">本餐随机搭配</span>
+              <span id="result-taste-badge" class="xs muted"></span>
+            </div>
+            <div id="result-hotpots" class="stack-8"></div>
+            <div id="result-dishes" class="stack-8"></div>
+            <div id="result-soups" class="stack-8"></div>
+          </div>
+
+          <div class="white-card stack-12">
+            <div class="row-between" style="padding-bottom:10px; border-bottom:1px solid var(--border);">
+              <div>
+                <div class="section-title">需要准备的食材清单</div>
+                <div id="ing-progress-text" class="xs muted" style="margin-top:2px;"></div>
+              </div>
+              <button class="btn-accent-pill" onclick="confirmToChecklist()">确认去备菜</button>
+            </div>
+            <div>
+              <div class="xs muted" style="font-weight:500; margin-bottom:8px;">主要食材（含参考用量）</div>
+              <div id="random-ing-main" class="stack-8"></div>
+            </div>
+            <div>
+              <div class="xs muted" style="font-weight:500; margin-bottom:8px;">配料与调味</div>
+              <div id="random-ing-aux" class="pill-wrap"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== TAB 3: 清单 ==================== -->
+      <section id="view-list" class="view hidden stack-20">
+        <div class="row-between">
+          <div>
+            <div class="sub-caption">第一步 · 核对备菜</div>
+            <h2 class="headline" style="margin-top:2px;">备菜清单</h2>
+          </div>
+          <button id="btn-clear-list" class="xs muted hidden" onclick="clearSavedMenu()">清空</button>
+        </div>
+
+        <div id="saved-empty" class="empty-box">
+          <div class="sm" style="font-weight:500;">还没有待做菜单</div>
+          <div class="xs muted" style="margin-top:6px; line-height:1.6;">在「随机」里一键配好一餐，或在「分类」中点选菜品加入</div>
+          <button class="btn-accent-pill" style="margin-top:16px;" onclick="switchTab('random')">去随机选菜</button>
+        </div>
+
+        <div id="saved-content" class="hidden stack-20">
+          <div>
+            <div class="row-between" style="margin-bottom:8px;">
+              <span class="section-title">本餐菜品（已按做菜顺序排好）</span>
+              <span id="saved-dish-count" class="xs subtle"></span>
+            </div>
+            <div id="saved-dish-list" class="stack-8"></div>
+          </div>
+
+          <div class="surface-card stack-12">
+            <div class="row-between">
+              <span class="section-title">食材核对（点击勾选）</span>
+              <span id="saved-ing-status" class="xs muted"></span>
+            </div>
+            <div class="progress-track"><div id="saved-ing-bar" class="progress-fill" style="width:0%;"></div></div>
+            <div id="saved-ing-main" class="stack-8"></div>
+            <div class="divider-top">
+              <div class="xs muted" style="margin-bottom:8px;">辅料 / 调料</div>
+              <div id="saved-ing-aux" class="pill-wrap"></div>
+            </div>
+          </div>
+
+          <div class="tint-card stack-12">
+            <div>
+              <div id="ready-title" class="section-title">食材准备好了？</div>
+              <div id="ready-sub" class="xs muted" style="margin-top:3px;">进入做菜步骤，系统已排好先后顺序</div>
+            </div>
+            <button class="btn-primary-full" onclick="switchTab('cook')">
+              <span>进入做菜步骤</span>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== TAB 4: 做菜 ==================== -->
+      <section id="view-cook" class="view hidden stack-16">
+        <div class="row-between">
+          <div>
+            <div class="sub-caption">第二步 · 科学顺序跟做</div>
+            <h2 class="headline" style="margin-top:2px;">做菜步骤</h2>
+          </div>
+          <div class="seg-switch">
+            <button id="mode-btn-detail" class="seg-btn active" onclick="setStepMode('detail')">精细</button>
+            <button id="mode-btn-brief" class="seg-btn" onclick="setStepMode('brief')">精简</button>
+          </div>
+        </div>
+
+        <div id="cook-empty" class="empty-box">
+          <div class="sm" style="font-weight:500;">还没有待做的菜</div>
+          <div class="xs muted" style="margin-top:6px; line-height:1.6;">先在「随机」或「分类」选好菜品，备菜完成后即可在此按顺序跟做</div>
+          <div class="row-center" style="justify-content:center; margin-top:16px;">
+            <button class="btn-accent-pill" onclick="switchTab('random')">去随机配菜</button>
+            <button class="pill-btn" onclick="switchTab('list')">看备菜清单</button>
+          </div>
+        </div>
+
+        <div id="cook-content" class="hidden stack-16">
+          <div class="tint-card stack-8" style="padding:12px 14px;">
+            <div class="row-between">
+              <span class="xxs" style="font-weight:600;">本餐排序逻辑</span>
+              <span id="cook-overall-badge" class="xxs muted" style="font-weight:500;"></span>
+            </div>
+            <div id="cook-flow-summary" class="xs muted" style="line-height:1.6;"></div>
+          </div>
+
+          <div id="cook-dish-tabs" class="h-scroll"></div>
+
+          <div class="surface-card stack-12">
+            <div class="row-between" style="align-items:flex-start;">
+              <div>
+                <div class="pill-wrap" style="gap:6px;">
+                  <span id="cook-dish-stage" class="tag tag-accent"></span>
+                  <span id="cook-dish-cat" class="tag tag-plain"></span>
+                  <span id="cook-dish-time" class="xs muted"></span>
+                </div>
+                <div id="cook-dish-title" style="font-size:18px; font-weight:600; margin-top:8px;"></div>
+              </div>
+              <span id="cook-step-counter" class="xs muted" style="flex-shrink:0; padding-top:2px;"></span>
+            </div>
+            <div class="divider-top">
+              <div class="xxs subtle" style="margin-bottom:6px;">本道菜用料与参考量</div>
+              <div id="cook-dish-ings" class="pill-wrap" style="gap:6px;"></div>
+            </div>
+          </div>
+
+          <div class="row-between">
+            <span id="step-mode-hint" class="xs muted">精细描述：含火候、用量与避坑贴士</span>
+            <span class="xxs subtle">点击步骤勾选完成</span>
+          </div>
+
+          <div id="cook-steps-list" class="stack-10"></div>
+
+          <div class="row-center" style="gap:10px;">
+            <button id="cook-prev-btn" class="btn-secondary" onclick="cookNextDish(-1)">上一道</button>
+            <button id="cook-complete-btn" class="btn-primary-full" style="flex:1;" onclick="completeCurrentDish()">完成这道菜</button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Bottom Tab Bar -->
+    <nav class="tab-bar">
+      <button id="nav-home" class="tab-btn active" onclick="switchTab('home')">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg>
+        <span>分类</span>
+      </button>
+      <button id="nav-random" class="tab-btn" onclick="switchTab('random')">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/><line x1="4" y1="4" x2="9" y2="9"/></svg>
+        <span>随机</span>
+      </button>
+      <button id="nav-list" class="tab-btn" onclick="switchTab('list')">
+        <span class="badge-wrap">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/></svg>
+          <span id="list-badge" class="badge-count hidden">0</span>
+        </span>
+        <span>清单</span>
+      </button>
+      <button id="nav-cook" class="tab-btn" onclick="switchTab('cook')">
+        <span class="badge-wrap">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2c1 3 4 4.5 4 8a4 4 0 11-8 0c0-1.5.5-2.8 1.5-4 .2 1.2 1 2 2 2-.2-2 0-4 .5-6z"/><path d="M4 18h16"/><path d="M6 18v1a2 2 0 002 2h8a2 2 0 002-2v-1"/></svg>
+          <span id="cook-dot" class="badge-dot hidden"></span>
+        </span>
+        <span>做菜</span>
+      </button>
+    </nav>
+
+    <!-- Toast -->
+    <div id="toast" class="toast">提示</div>
+
+    <!-- Detail Drawer -->
+    <div id="detail-overlay" class="overlay hidden" onclick="closeDetail(event)">
+      <div class="sheet" onclick="event.stopPropagation()">
+        <div class="sheet-handle"></div>
+        <div id="detail-body" class="sheet-body stack-16"></div>
+        <div class="sheet-footer">
+          <button id="detail-toggle-btn" class="btn-primary-full" onclick="toggleSavedFromDetail()">加入备菜清单</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="recipes.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,20 @@
+{
+  "name": "muge-app",
+  "version": "1.0.0",
+  "description": "沐GE - 吃啥吃啥随机一下！iOS/Android 极简暖白食谱应用",
+  "private": true,
+  "scripts": {
+    "serve": "node serve.js",
+    "ios:sync": "npx cap sync ios",
+    "android:sync": "npx cap sync android"
+  },
+  "dependencies": {
+    "@capacitor/core": "^6.2.0"
+  },
+  "devDependencies": {
+    "@capacitor/android": "^6.2.0",
+    "@capacitor/assets": "^3.0.5",
+    "@capacitor/cli": "^6.2.0",
+    "@capacitor/ios": "^6.2.0"
+  }
+}
